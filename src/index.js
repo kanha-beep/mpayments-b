@@ -8,8 +8,25 @@ import { seedDatabase } from "./services/seedService.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean)
+  : ["http://localhost:3000", "http://localhost:5173"];
 
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS origin not allowed"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-API-Token"],
+  }),
+);
+app.options("*", cors());
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
