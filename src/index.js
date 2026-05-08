@@ -8,6 +8,7 @@ import { seedDatabase } from "./services/seedService.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
+const serverPublicUrl = process.env.SERVER_PUBLIC_URL || `http://localhost:${port}`;
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean)
   : ["http://localhost:3000", "http://localhost:5173"];
@@ -30,7 +31,12 @@ app.options("*", cors());
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "payment-dashboard-api", timestamp: new Date().toISOString() });
+  res.json({
+    ok: true,
+    service: "payment-dashboard-api",
+    url: serverPublicUrl,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.use("/api/auth", authRoutes);
@@ -47,6 +53,7 @@ async function start() {
   await seedDatabase();
   app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
+    console.log(`Public URL: ${serverPublicUrl}`);
     console.log(`Mongo connected: ${mongoUri}`);
   });
 }
